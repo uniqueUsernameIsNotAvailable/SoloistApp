@@ -62,7 +62,8 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
-
     implementation(libs.dagger)
     kapt(libs.dagger.compiler)
+
+    implementation(libs.coil.compose)
 }
