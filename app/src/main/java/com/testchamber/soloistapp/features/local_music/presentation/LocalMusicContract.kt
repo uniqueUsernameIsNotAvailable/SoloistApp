@@ -29,4 +29,6 @@ sealed interface LocalMusicIntent {
     data class UpdateSearchQuery(
         val query: String,
     ) : LocalMusicIntent
+
+    data object ClearSearch : LocalMusicIntent
 }

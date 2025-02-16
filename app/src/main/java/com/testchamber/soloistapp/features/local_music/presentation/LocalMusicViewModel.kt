@@ -18,12 +18,11 @@ class LocalMusicViewModel
         private val _uiState = MutableStateFlow<LocalMusicUiState>(LocalMusicUiState.Loading)
         val uiState: StateFlow<LocalMusicUiState> = _uiState.asStateFlow()
 
+        private var allTracks = listOf<Track>()
+
         init {
             loadTracks()
         }
-
-        private var allTracks = listOf<Track>()
-        private var currentSearchQuery = ""
 
         fun handleIntent(intent: LocalMusicIntent) {
             when (intent) {
@@ -31,31 +30,7 @@ class LocalMusicViewModel
                 is LocalMusicIntent.RequestPermission -> requestPermission()
                 is LocalMusicIntent.SelectTrack -> selectTrack(intent.track)
                 is LocalMusicIntent.UpdateSearchQuery -> updateSearchQuery(intent.query)
-            }
-        }
-
-        private fun updateSearchQuery(query: String) {
-            currentSearchQuery = query
-            filterTracks()
-        }
-
-        private fun filterTracks() {
-            val currentState = _uiState.value
-            if (currentState is LocalMusicUiState.Success) {
-                val filtered =
-                    if (currentSearchQuery.isBlank()) {
-                        allTracks
-                    } else {
-                        allTracks.filter { track ->
-                            track.title.contains(currentSearchQuery, ignoreCase = true) ||
-                                track.artist.contains(currentSearchQuery, ignoreCase = true)
-                        }
-                    }
-                _uiState.value =
-                    currentState.copy(
-                        filteredTracks = filtered,
-                        searchQuery = currentSearchQuery,
-                    )
+                is LocalMusicIntent.ClearSearch -> clearSearch()
             }
         }
 
@@ -68,12 +43,44 @@ class LocalMusicViewModel
                         LocalMusicUiState.Success(
                             tracks = allTracks,
                             filteredTracks = allTracks,
-                            searchQuery = currentSearchQuery,
+                            searchQuery = "",
                             isPermissionGranted = true,
                         )
                 } catch (e: Exception) {
                     _uiState.value = LocalMusicUiState.Error(e.message ?: "Unknown error")
                 }
+            }
+        }
+
+        private fun updateSearchQuery(query: String) {
+            if (query.isBlank()) {
+                clearSearch()
+                return
+            }
+
+            val currentState = _uiState.value
+            if (currentState is LocalMusicUiState.Success) {
+                val filtered =
+                    allTracks.filter { track ->
+                        track.title.contains(query, ignoreCase = true) ||
+                            track.artist.contains(query, ignoreCase = true)
+                    }
+                _uiState.value =
+                    currentState.copy(
+                        filteredTracks = filtered,
+                        searchQuery = query,
+                    )
+            }
+        }
+
+        private fun clearSearch() {
+            val currentState = _uiState.value
+            if (currentState is LocalMusicUiState.Success) {
+                _uiState.value =
+                    currentState.copy(
+                        filteredTracks = allTracks,
+                        searchQuery = "",
+                    )
             }
         }
     }
