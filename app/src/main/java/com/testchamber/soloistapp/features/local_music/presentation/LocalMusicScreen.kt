@@ -14,20 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.testchamber.soloistapp.R
 import com.testchamber.soloistapp.core.ComponentProvider
+import com.testchamber.soloistapp.core.ui.components.MusicSearchBar
 import com.testchamber.soloistapp.domain.models.Track
 import java.util.concurrent.TimeUnit
 
@@ -57,67 +50,26 @@ fun LocalMusicScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.fillMaxSize()) {
-        SearchBar(
-            onSearchQueryChange = { query ->
-                viewModel.handleIntent(LocalMusicIntent.UpdateSearchQuery(query))
-            },
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-        )
-
-        when (uiState) {
+        when (val state = uiState) {
             is LocalMusicUiState.Loading -> LoadingIndicator()
-            is LocalMusicUiState.Error -> ErrorMessage((uiState as LocalMusicUiState.Error).message)
+            is LocalMusicUiState.Error -> ErrorMessage(state.message)
             is LocalMusicUiState.Success -> {
-                val successState = uiState as LocalMusicUiState.Success
-                TrackList(
-                    tracks = successState.filteredTracks,
-                    onTrackSelect = onTrackSelect,
+                MusicSearchBar(
+                    searchQuery = state.searchQuery,
+                    onSearchQueryChange = { query ->
+                        viewModel.handleIntent(LocalMusicIntent.UpdateSearchQuery(query))
+                    },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                 )
-            }
-        }
-    }
-}
 
-@Composable
-fun SearchBar(
-    onSearchQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var text by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = text,
-        onValueChange = { newText ->
-            text = newText
-            onSearchQueryChange(newText)
-        },
-        modifier = modifier,
-        placeholder = { Text("Search tracks...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-        singleLine = true,
-    )
-}
-
-@Composable
-private fun LocalMusicContent(
-    uiState: LocalMusicUiState,
-    onTrackSelect: (trackId: String) -> Unit,
-    onPermissionRequest: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier.fillMaxSize()) {
-        when (uiState) {
-            is LocalMusicUiState.Loading -> LoadingIndicator()
-            is LocalMusicUiState.Error -> ErrorMessage(uiState.message)
-            is LocalMusicUiState.Success -> {
-                if (!uiState.isPermissionGranted) {
-                    PermissionRequest(onPermissionRequest)
+                if (!state.isPermissionGranted) {
+                    PermissionRequest { viewModel.handleIntent(LocalMusicIntent.RequestPermission) }
                 } else {
                     TrackList(
-                        tracks = uiState.tracks,
+                        tracks = state.filteredTracks,
                         onTrackSelect = onTrackSelect,
                     )
                 }
