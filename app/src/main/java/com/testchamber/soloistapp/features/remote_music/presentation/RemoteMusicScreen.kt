@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.testchamber.soloistapp.core.ComponentProvider
-import com.testchamber.soloistapp.features.local_music.presentation.SearchBar
+import com.testchamber.soloistapp.core.ui.components.MusicSearchBar
 import com.testchamber.soloistapp.features.local_music.presentation.TrackList
 
 @Composable
@@ -32,7 +32,12 @@ fun RemoteMusicScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.fillMaxSize()) {
-        SearchBar(
+        MusicSearchBar(
+            searchQuery =
+                when (val state = uiState) {
+                    is RemoteMusicUiState.Success -> state.searchQuery
+                    else -> ""
+                },
             onSearchQueryChange = { query ->
                 viewModel.handleIntent(RemoteMusicIntent.SearchTracks(query))
             },
@@ -42,13 +47,12 @@ fun RemoteMusicScreen(
                     .padding(16.dp),
         )
 
-        when (uiState) {
+        when (val state = uiState) {
             is RemoteMusicUiState.Loading -> LoadingIndicator()
-            is RemoteMusicUiState.Error -> ErrorMessage((uiState as RemoteMusicUiState.Error).message)
+            is RemoteMusicUiState.Error -> ErrorMessage(state.message)
             is RemoteMusicUiState.Success -> {
-                val successState = uiState as RemoteMusicUiState.Success
                 TrackList(
-                    tracks = successState.filteredTracks,
+                    tracks = state.filteredTracks,
                     onTrackSelect = onTrackSelect,
                 )
             }
