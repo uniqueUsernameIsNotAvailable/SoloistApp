@@ -22,8 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.testchamber.soloistapp.R
+import com.testchamber.soloistapp.core.utils.formatMusicDuration
 import com.testchamber.soloistapp.domain.models.Track
-import okhttp3.internal.concurrent.formatDuration
 
 @Composable
 fun TrackListItem(
@@ -71,7 +71,7 @@ fun TrackListItem(
         }
 
         Text(
-            text = formatDuration(track.duration),
+            text = (track.duration).formatMusicDuration(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
         )
