@@ -13,6 +13,7 @@ sealed interface RemoteMusicUiState {
         val tracks: List<Track>,
         val filteredTracks: List<Track>,
         val searchQuery: String,
+        val isSearchActive: Boolean = false,
     ) : RemoteMusicUiState
 }
 
@@ -22,6 +23,8 @@ sealed interface RemoteMusicIntent {
     data class SearchTracks(
         val query: String,
     ) : RemoteMusicIntent
+
+    data object ClearSearch : RemoteMusicIntent
 
     data class SelectTrack(
         val track: Track,
