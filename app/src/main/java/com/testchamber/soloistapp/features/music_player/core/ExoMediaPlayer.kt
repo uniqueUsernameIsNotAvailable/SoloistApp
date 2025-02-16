@@ -11,7 +11,6 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,10 +79,10 @@ class ExoMediaPlayer
         private fun startProgressUpdates() {
             updateJob?.cancel()
             updateJob =
-                CoroutineScope(Dispatchers.Main + SupervisorJob()).launch {
+                CoroutineScope(Dispatchers.Main).launch {
                     while (isActive) {
                         updatePlaybackState()
-                        delay(16)
+                        delay(500)
                     }
                 }
         }
@@ -95,23 +94,22 @@ class ExoMediaPlayer
 
         override fun prepare(uri: String) {
             try {
-                // Stop
                 stopProgressUpdates()
                 player?.stop()
                 player?.clearMediaItems()
-
-                // new player if needed
                 createPlayerIfNeeded()
 
-                // Prepare new
                 player?.let { exoPlayer ->
                     val mediaItem = MediaItem.fromUri(uri)
                     exoPlayer.setMediaItem(mediaItem)
                     exoPlayer.prepare()
+
+                    updatePlaybackState()
+
                     exoPlayer.playWhenReady = true
                 }
             } catch (e: Exception) {
-                Log.e("ExoMediaPlayer", "Error preparing track: ${e.message}", e)
+                Log.e("ExoMediaPlayer", "Error preparing track", e)
                 _playbackState.value = PlaybackState()
             }
         }
@@ -146,17 +144,28 @@ class ExoMediaPlayer
 
         private fun updatePlaybackState() {
             player?.let { exoPlayer ->
-                val duration = exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: 0L
-                val currentPosition = exoPlayer.currentPosition.coerceIn(0L, duration)
-                val bufferedPosition = exoPlayer.bufferedPosition.coerceIn(0L, duration)
+                val duration =
+                    exoPlayer.duration.takeIf { it != C.TIME_UNSET && it > 0 }
+                        ?: _playbackState.value.duration
+                        ?: 0L
 
-                _playbackState.value =
+                val currentPosition = exoPlayer.currentPosition.coerceIn(0L, duration)
+                val bufferedPosition =
+                    exoPlayer.bufferedPosition
+                        .takeIf { it != C.TIME_UNSET }
+                        ?.coerceIn(0L, duration) ?: currentPosition
+
+                val newState =
                     PlaybackState(
                         isPlaying = exoPlayer.isPlaying,
                         currentPosition = currentPosition,
                         bufferedPosition = bufferedPosition,
                         duration = duration,
                     )
+
+                if (newState != _playbackState.value) {
+                    _playbackState.value = newState
+                }
             }
         }
     }
