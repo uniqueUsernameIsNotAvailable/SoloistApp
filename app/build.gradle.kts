@@ -66,4 +66,7 @@ dependencies {
     kapt(libs.dagger.compiler)
 
     implementation(libs.coil.compose)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
