@@ -13,6 +13,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.testchamber.soloistapp.R
+import com.testchamber.soloistapp.core.utils.formatMusicDuration
 import com.testchamber.soloistapp.domain.models.Track
 import com.testchamber.soloistapp.features.music_player.core.MediaPlayer
 import com.testchamber.soloistapp.features.music_player.core.PlaybackState
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 class MediaServiceControllerImpl
     @Inject
@@ -225,14 +225,6 @@ class MediaServiceControllerImpl
             mediaPlayer.seekTo(position)
         }
 
-        private fun formatDuration(durationMs: Long): String {
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMs)
-            val seconds =
-                TimeUnit.MILLISECONDS.toSeconds(durationMs) -
-                    TimeUnit.MINUTES.toSeconds(minutes)
-            return String.format("%02d:%02d", minutes, seconds)
-        }
-
         override fun release() {
             controllerScope.launch {
                 try {
@@ -291,7 +283,7 @@ class MediaServiceControllerImpl
                     .setSmallIcon(R.drawable.ic_music_note_24dp)
                     .setContentTitle(track.title)
                     .setContentText("Artist - ${track.artist}")
-                    .setSubText("${formatDuration(currentPosition)} / ${formatDuration(duration)}")
+                    .setSubText("${(currentPosition).formatMusicDuration()} / ${(duration).formatMusicDuration()}")
                     .setOngoing(true)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)

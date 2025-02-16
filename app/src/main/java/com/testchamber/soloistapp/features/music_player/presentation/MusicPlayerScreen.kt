@@ -2,7 +2,6 @@ package com.testchamber.soloistapp.features.music_player.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,7 +40,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.testchamber.soloistapp.App
 import com.testchamber.soloistapp.R
-import java.util.concurrent.TimeUnit
+import com.testchamber.soloistapp.core.ui.components.utils.ErrorMessage
+import com.testchamber.soloistapp.core.ui.components.utils.LoadingIndicator
+import com.testchamber.soloistapp.core.utils.formatMusicDuration
 
 @Composable
 fun MusicPlayerScreen(
@@ -147,12 +147,12 @@ private fun PlayerContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = formatDuration(state.currentPosition.coerceAtLeast(0)),
+                    text = (state.currentPosition.coerceAtLeast(0)).formatMusicDuration(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
                 Text(
-                    text = formatDuration(state.duration.coerceAtLeast(0)),
+                    text = (state.duration.coerceAtLeast(0)).formatMusicDuration(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
@@ -202,36 +202,4 @@ private fun PlayerContent(
             }
         }
     }
-}
-
-@Composable
-private fun LoadingIndicator() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun ErrorMessage(message: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
-    }
-}
-
-private fun formatDuration(durationMs: Long): String {
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMs)
-    val seconds =
-        TimeUnit.MILLISECONDS.toSeconds(durationMs) -
-            TimeUnit.MINUTES.toSeconds(minutes)
-    return String.format("%02d:%02d", minutes, seconds)
 }
