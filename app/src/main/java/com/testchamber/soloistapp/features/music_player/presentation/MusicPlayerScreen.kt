@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun MusicPlayerScreen(
     trackId: String,
+    isRemote: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
