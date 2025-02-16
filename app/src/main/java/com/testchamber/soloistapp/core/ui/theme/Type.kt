@@ -1,4 +1,4 @@
-package com.testchamber.soloistapp.ui.theme
+package com.testchamber.soloistapp.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

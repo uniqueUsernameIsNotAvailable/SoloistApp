@@ -1,4 +1,4 @@
-package com.testchamber.soloistapp.ui.theme
+package com.testchamber.soloistapp.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
