@@ -27,10 +27,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.testchamber.soloistapp.App
 import com.testchamber.soloistapp.R
 import java.util.concurrent.TimeUnit
 
@@ -46,11 +49,17 @@ fun MusicPlayerScreen(
     trackId: String,
     isRemote: Boolean,
     modifier: Modifier = Modifier,
-    viewModel: MusicPlayerViewModel =
-        viewModel(
-            factory = provideMusicPlayerViewModelFactory(trackId, isRemote),
-        ),
 ) {
+    val context = LocalContext.current
+    val app = context.applicationContext as App
+    val viewModelFactory =
+        remember(trackId, isRemote) {
+            app.appComponent
+                .musicPlayerViewModelFactoryProvider()
+                .create(trackId, isRemote)
+        }
+
+    val viewModel: MusicPlayerViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (val state = uiState) {

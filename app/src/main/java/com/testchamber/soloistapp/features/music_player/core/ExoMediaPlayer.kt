@@ -45,21 +45,17 @@ class ExoMediaPlayer
                     updatePlaybackState()
                     when (state) {
                         Player.STATE_READY -> {
-                            Log.d("ExoMediaPlayer", "Player ready")
                             startProgressUpdates()
                         }
 
                         Player.STATE_ENDED -> {
-                            Log.d("ExoMediaPlayer", "Playback ended")
                             stopProgressUpdates()
                         }
 
                         Player.STATE_BUFFERING -> {
-                            Log.d("ExoMediaPlayer", "Buffering...")
                         }
 
                         Player.STATE_IDLE -> {
-                            Log.d("ExoMediaPlayer", "Player idle")
                             stopProgressUpdates()
                         }
                     }
@@ -72,7 +68,6 @@ class ExoMediaPlayer
                 }
 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    Log.d("ExoMediaPlayer", "Is playing changed: $isPlaying")
                     updatePlaybackState()
                     if (isPlaying) {
                         startProgressUpdates()
@@ -99,7 +94,6 @@ class ExoMediaPlayer
         }
 
         override fun prepare(uri: String) {
-            Log.d("ExoMediaPlayer", "Preparing track with URI: $uri")
             try {
                 // Stop
                 stopProgressUpdates()
