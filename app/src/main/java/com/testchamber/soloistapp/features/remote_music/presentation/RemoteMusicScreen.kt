@@ -1,16 +1,11 @@
 package com.testchamber.soloistapp.features.remote_music.presentation
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -18,7 +13,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.testchamber.soloistapp.core.ComponentProvider
 import com.testchamber.soloistapp.core.ui.components.MusicSearchBar
-import com.testchamber.soloistapp.features.local_music.presentation.TrackList
+import com.testchamber.soloistapp.core.ui.components.TrackList
+import com.testchamber.soloistapp.core.ui.components.utils.ErrorMessage
+import com.testchamber.soloistapp.core.ui.components.utils.LoadingIndicator
 
 @Composable
 fun RemoteMusicScreen(
@@ -57,29 +54,5 @@ fun RemoteMusicScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun LoadingIndicator() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun ErrorMessage(message: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
     }
 }
