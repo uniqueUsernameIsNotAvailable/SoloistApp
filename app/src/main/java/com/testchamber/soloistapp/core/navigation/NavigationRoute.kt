@@ -15,6 +15,7 @@ data object LocalMusic
 @Serializable
 data class MusicPlayer(
     val trackId: String,
+    val isRemote: Boolean,
 )
 
 data class TopLevelRoute<T : Any>(
