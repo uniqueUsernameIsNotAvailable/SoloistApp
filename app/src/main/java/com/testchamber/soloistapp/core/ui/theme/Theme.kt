@@ -1,4 +1,4 @@
-package com.testchamber.soloistapp.ui.theme
+package com.testchamber.soloistapp.core.ui.theme
 
 import android.app.Activity
 import android.os.Build

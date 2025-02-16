@@ -43,7 +43,7 @@ fun AppNavigation() {
                 RemoteMusicScreen(
                     modifier = Modifier.padding(paddingValues),
                     onTrackSelect = { trackId ->
-                        navController.navigate(MusicPlayer(trackId))
+                        navController.navigate(MusicPlayer(trackId, isRemote = true))
                     },
                 )
             }
@@ -51,15 +51,16 @@ fun AppNavigation() {
                 LocalMusicScreen(
                     modifier = Modifier.padding(paddingValues),
                     onTrackSelect = { trackId ->
-                        navController.navigate(MusicPlayer(trackId))
+                        navController.navigate(MusicPlayer(trackId, isRemote = false))
                     },
                 )
             }
             composable<MusicPlayer> { backStackEntry ->
                 val args = backStackEntry.toRoute<MusicPlayer>()
                 MusicPlayerScreen(
-                    modifier = Modifier.padding(paddingValues),
                     trackId = args.trackId,
+                    isRemote = args.isRemote,
+                    modifier = Modifier.padding(paddingValues),
                 )
             }
         }
