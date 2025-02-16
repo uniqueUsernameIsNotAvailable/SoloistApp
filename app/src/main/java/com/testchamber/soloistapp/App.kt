@@ -13,7 +13,7 @@ class App :
 
     override fun onCreate() {
         super.onCreate()
-        appComponent = DaggerAppComponent.factory().create(this)
+        appComponent = DaggerAppComponent.factory().create(this, this)
     }
 
     override fun provideViewModelFactory(): ViewModelProvider.Factory = appComponent.viewModelFactory()

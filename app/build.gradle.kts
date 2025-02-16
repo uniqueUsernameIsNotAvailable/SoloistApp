@@ -69,4 +69,6 @@ dependencies {
 
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    implementation(libs.androidx.media3.exoplayer)
 }

@@ -11,6 +11,9 @@ import dagger.multibindings.IntoMap
 @Module
 abstract class ViewModelModule {
     @Binds
+    abstract fun bindViewModelFactory(factory: SavedStateViewModelFactory): ViewModelProvider.Factory
+
+    @Binds
     @IntoMap
     @ViewModelKey(LocalMusicViewModel::class)
     abstract fun bindLocalMusicViewModel(viewModel: LocalMusicViewModel): ViewModel
@@ -19,7 +22,4 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(RemoteMusicViewModel::class)
     abstract fun bindRemoteMusicViewModel(viewModel: RemoteMusicViewModel): ViewModel
-
-    @Binds
-    abstract fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
 }
