@@ -9,11 +9,12 @@ import com.testchamber.soloistapp.core.di.DaggerAppComponent
 class App :
     Application(),
     ComponentProvider {
-    private lateinit var appComponent: AppComponent
+    lateinit var appComponent: AppComponent
+        private set
 
     override fun onCreate() {
         super.onCreate()
-        appComponent = DaggerAppComponent.factory().create(this, this)
+        appComponent = DaggerAppComponent.factory().create(this)
     }
 
     override fun provideViewModelFactory(): ViewModelProvider.Factory = appComponent.viewModelFactory()

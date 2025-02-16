@@ -1,37 +1,30 @@
 package com.testchamber.soloistapp.features.music_player.presentation
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.testchamber.soloistapp.core.di.AssistedSavedStateViewModelFactory
 import com.testchamber.soloistapp.domain.models.Track
-import com.testchamber.soloistapp.domain.usecases.GetRemoteTrackUseCase
+import com.testchamber.soloistapp.domain.usecases.GetTrackUseCase
 import com.testchamber.soloistapp.features.music_player.core.MediaPlayer
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import jakarta.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MusicPlayerViewModel
-    @AssistedInject
+    @Inject
     constructor(
-        private val getRemoteTrackUseCase: GetRemoteTrackUseCase,
+        private val getTrackUseCase: GetTrackUseCase,
         private val mediaPlayer: MediaPlayer,
-        @Assisted private val savedStateHandle: SavedStateHandle,
+        private val trackId: String,
+        private val isRemote: Boolean,
     ) : ViewModel() {
-        @AssistedFactory
-        interface Factory : AssistedSavedStateViewModelFactory<MusicPlayerViewModel> {
-            override fun create(savedStateHandle: SavedStateHandle): MusicPlayerViewModel
-        }
-
         private val _uiState = MutableStateFlow<MusicPlayerUiState>(MusicPlayerUiState.Loading)
         val uiState: StateFlow<MusicPlayerUiState> = _uiState.asStateFlow()
 
         private var currentTrack: Track? = null
-        private val trackId: String = checkNotNull(savedStateHandle["trackId"])
+        private var playbackJob: Job? = null
 
         init {
             loadTrack()
@@ -41,7 +34,10 @@ class MusicPlayerViewModel
         private fun loadTrack() {
             viewModelScope.launch {
                 try {
-                    val track = getRemoteTrackUseCase.execute(trackId)
+                    // Cancel any existing playback observation
+                    playbackJob?.cancel()
+
+                    val track = getTrackUseCase.execute(trackId, isRemote)
                     currentTrack = track
                     mediaPlayer.prepare(track.uri)
                     _uiState.value = MusicPlayerUiState.Playing(track = track)
@@ -52,20 +48,28 @@ class MusicPlayerViewModel
         }
 
         private fun observePlaybackState() {
-            viewModelScope.launch {
-                mediaPlayer.playbackState.collect { state ->
-                    currentTrack?.let { track ->
-                        _uiState.value =
-                            MusicPlayerUiState.Playing(
-                                track = track,
-                                isPlaying = state.isPlaying,
-                                currentPosition = state.currentPosition,
-                                bufferedPosition = state.bufferedPosition,
-                                duration = state.duration,
-                            )
+            playbackJob?.cancel()
+            playbackJob =
+                viewModelScope.launch {
+                    mediaPlayer.playbackState.collect { state ->
+                        currentTrack?.let { track ->
+                            _uiState.value =
+                                MusicPlayerUiState.Playing(
+                                    track = track,
+                                    isPlaying = state.isPlaying,
+                                    currentPosition = state.currentPosition,
+                                    bufferedPosition = state.bufferedPosition,
+                                    duration = state.duration,
+                                )
+                        }
                     }
                 }
-            }
+        }
+
+        override fun onCleared() {
+            super.onCleared()
+            playbackJob?.cancel()
+            mediaPlayer.release()
         }
 
         fun handleIntent(intent: MusicPlayerIntent) {
@@ -87,10 +91,5 @@ class MusicPlayerViewModel
 
         private fun seekTo(position: Long) {
             mediaPlayer.seekTo(position)
-        }
-
-        override fun onCleared() {
-            super.onCleared()
-            mediaPlayer.release()
         }
     }

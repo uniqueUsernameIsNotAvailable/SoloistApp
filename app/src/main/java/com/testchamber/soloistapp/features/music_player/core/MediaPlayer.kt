@@ -23,4 +23,7 @@ data class PlaybackState(
     val currentPosition: Long = 0L,
     val bufferedPosition: Long = 0L,
     val duration: Long = 0L,
-)
+) {
+    val isValid: Boolean
+        get() = duration > 0
+}

@@ -16,12 +16,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,16 +39,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.testchamber.soloistapp.R
-import com.testchamber.soloistapp.core.ComponentProvider
 import java.util.concurrent.TimeUnit
 
 @Composable
 fun MusicPlayerScreen(
     trackId: String,
+    isRemote: Boolean,
     modifier: Modifier = Modifier,
     viewModel: MusicPlayerViewModel =
         viewModel(
-            factory = (LocalContext.current.applicationContext as ComponentProvider).provideViewModelFactory(),
+            factory = provideMusicPlayerViewModelFactory(trackId, isRemote),
         ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -119,26 +118,32 @@ private fun PlayerContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // duration
+        // Progress
         Column(modifier = Modifier.fillMaxWidth()) {
-            Slider(
-                value = state.currentPosition.toFloat(),
-                onValueChange = { onSeek(it.toLong()) },
-                valueRange = 0f..state.duration.toFloat(),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (state.duration > 0) {
+                Slider(
+                    value = state.currentPosition.coerceIn(0, state.duration).toFloat(),
+                    onValueChange = { onSeek(it.toLong()) },
+                    valueRange = 0f..state.duration.toFloat(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = formatDuration(state.currentPosition),
+                    text = formatDuration(state.currentPosition.coerceAtLeast(0)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
                 Text(
-                    text = formatDuration(state.duration),
+                    text = formatDuration(state.duration.coerceAtLeast(0)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 )
