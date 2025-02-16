@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.testchamber.soloistapp.App
 import com.testchamber.soloistapp.domain.usecases.GetTrackUseCase
 import com.testchamber.soloistapp.features.music_player.core.MediaPlayer
+import com.testchamber.soloistapp.features.music_player.core.PlaylistManager
 import jakarta.inject.Inject
 
 class MusicPlayerViewModelFactory
@@ -15,6 +16,7 @@ class MusicPlayerViewModelFactory
     constructor(
         private val getTrackUseCase: GetTrackUseCase,
         private val mediaPlayer: MediaPlayer,
+        private val playlistManager: PlaylistManager,
         private val trackId: String,
         private val isRemote: Boolean,
     ) : ViewModelProvider.Factory {
@@ -24,6 +26,7 @@ class MusicPlayerViewModelFactory
                 return MusicPlayerViewModel(
                     getTrackUseCase = getTrackUseCase,
                     mediaPlayer = mediaPlayer,
+                    playlistManager = playlistManager,
                     trackId = trackId,
                     isRemote = isRemote,
                 ) as T
@@ -42,6 +45,7 @@ fun provideMusicPlayerViewModelFactory(
     return MusicPlayerViewModelFactory(
         getTrackUseCase = app.appComponent.getTrackUseCase(),
         mediaPlayer = app.appComponent.mediaPlayer(),
+        playlistManager = app.appComponent.playlistManager(),
         trackId = trackId,
         isRemote = isRemote,
     )

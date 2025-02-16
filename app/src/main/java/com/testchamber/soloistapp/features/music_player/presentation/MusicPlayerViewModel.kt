@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.testchamber.soloistapp.domain.models.Track
 import com.testchamber.soloistapp.domain.usecases.GetTrackUseCase
 import com.testchamber.soloistapp.features.music_player.core.MediaPlayer
+import com.testchamber.soloistapp.features.music_player.core.PlaylistManager
 import jakarta.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ class MusicPlayerViewModel
     constructor(
         private val getTrackUseCase: GetTrackUseCase,
         private val mediaPlayer: MediaPlayer,
+        private val playlistManager: PlaylistManager,
         private val trackId: String,
         private val isRemote: Boolean,
     ) : ViewModel() {
@@ -27,20 +29,64 @@ class MusicPlayerViewModel
         private var playbackJob: Job? = null
 
         init {
-            loadTrack()
-            observePlaybackState()
+            initializePlaylist()
         }
 
-        private fun loadTrack() {
+        private fun initializePlaylist() {
             viewModelScope.launch {
                 try {
-                    // Cancel any existing playback observation
+                    playlistManager.initializePlaylist(trackId, isRemote)
+                    loadCurrentTrack()
+                } catch (e: Exception) {
+                    _uiState.value = MusicPlayerUiState.Error(e.message ?: "Unknown error")
+                }
+            }
+        }
+
+        private fun loadCurrentTrack() {
+            viewModelScope.launch {
+                try {
                     playbackJob?.cancel()
 
-                    val track = getTrackUseCase.execute(trackId, isRemote)
-                    currentTrack = track
-                    mediaPlayer.prepare(track.uri)
-                    _uiState.value = MusicPlayerUiState.Playing(track = track)
+                    currentTrack = playlistManager.getCurrentTrack()
+                    currentTrack?.let { track ->
+                        mediaPlayer.prepare(track.uri)
+                        _uiState.value = MusicPlayerUiState.Playing(track = track)
+                        observePlaybackState()
+                    }
+                } catch (e: Exception) {
+                    _uiState.value = MusicPlayerUiState.Error(e.message ?: "Unknown error")
+                }
+            }
+        }
+
+        fun handleIntent(intent: MusicPlayerIntent) {
+            when (intent) {
+                is MusicPlayerIntent.PlayPause -> togglePlayPause()
+                is MusicPlayerIntent.SeekTo -> seekTo(intent.position)
+                is MusicPlayerIntent.Next -> playNextTrack()
+                is MusicPlayerIntent.Previous -> playPreviousTrack()
+            }
+        }
+
+        private fun playNextTrack() {
+            viewModelScope.launch {
+                try {
+                    playlistManager.getNextTrack()?.let {
+                        loadCurrentTrack()
+                    }
+                } catch (e: Exception) {
+                    _uiState.value = MusicPlayerUiState.Error(e.message ?: "Unknown error")
+                }
+            }
+        }
+
+        private fun playPreviousTrack() {
+            viewModelScope.launch {
+                try {
+                    playlistManager.getPreviousTrack()?.let {
+                        loadCurrentTrack()
+                    }
                 } catch (e: Exception) {
                     _uiState.value = MusicPlayerUiState.Error(e.message ?: "Unknown error")
                 }
@@ -70,15 +116,6 @@ class MusicPlayerViewModel
             super.onCleared()
             playbackJob?.cancel()
             mediaPlayer.release()
-        }
-
-        fun handleIntent(intent: MusicPlayerIntent) {
-            when (intent) {
-                is MusicPlayerIntent.PlayPause -> togglePlayPause()
-                is MusicPlayerIntent.SeekTo -> seekTo(intent.position)
-                is MusicPlayerIntent.Next -> {} // TODO
-                is MusicPlayerIntent.Previous -> {} // TODO
-            }
         }
 
         private fun togglePlayPause() {

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModelProvider
 import com.testchamber.soloistapp.domain.usecases.GetTrackUseCase
 import com.testchamber.soloistapp.features.music_player.core.MediaPlayer
+import com.testchamber.soloistapp.features.music_player.core.PlaylistManager
 import dagger.BindsInstance
 import dagger.Component
 import jakarta.inject.Singleton
@@ -22,6 +23,8 @@ interface AppComponent {
     fun getTrackUseCase(): GetTrackUseCase
 
     fun mediaPlayer(): MediaPlayer
+
+    fun playlistManager(): PlaylistManager
 
     @Component.Factory
     interface Factory {
